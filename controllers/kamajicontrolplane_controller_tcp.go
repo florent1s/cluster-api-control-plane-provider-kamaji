@@ -42,6 +42,10 @@ func (r *KamajiControlPlaneReconciler) createOrUpdateTenantControlPlane(ctx cont
 			tcp.Name, tcp.Namespace = externalclusterreference.GenerateRemoteTenantControlPlaneNames(kcp)
 		}
 
+		if dedicatedTcpNamespace := kcp.Spec.Deployment.TargetNamespace; (dedicatedTcpNamespace != nil) && !isDelegatedExternally {
+			tcp.Namespace = dedicatedTcpNamespace
+		}
+
 		_, scopeErr := controllerutil.CreateOrUpdate(ctx, k8sClient, tcp, func() error {
 			if tcp.Annotations == nil {
 				tcp.Annotations = make(map[string]string)

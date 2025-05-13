@@ -131,6 +131,7 @@ type DeploymentComponent struct {
 	ExtraInitContainers       []corev1.Container                `json:"extraInitContainers,omitempty"`
 	ExtraContainers           []corev1.Container                `json:"extraContainers,omitempty"`
 	ExtraVolumes              []corev1.Volume                   `json:"extraVolumes,omitempty"`
+	TargetNamespace						string														`json:"targetNamespace,omitempty"`
 	// ExternalClusterReference allows defining the target Cluster where the Tenant Control Plane components must be deployed.
 	// When this value is nil, the Cluster API management cluster will be used as a target.
 	// The ExternalClusterReference feature gate must be enabled with one of the available flags.

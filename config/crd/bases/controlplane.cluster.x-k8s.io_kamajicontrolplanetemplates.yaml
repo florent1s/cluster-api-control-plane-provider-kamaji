@@ -1578,6 +1578,10 @@ spec:
                                     x-kubernetes-list-type: atomic
                                 type: object
                             type: object
+                          targetNamespace:
+                            description: |-
+                              Specify a separate namespace for the TenantControlPlane. Mutually exclusive with ExternalClusterReference.
+                            type: string
                           externalClusterReference:
                             description: |-
                               ExternalClusterReference allows defining the target Cluster where the Tenant Control Plane components must be deployed.

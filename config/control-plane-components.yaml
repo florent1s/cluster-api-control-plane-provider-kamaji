@@ -1522,6 +1522,9 @@ spec:
                     description: |-
                       Specify a separate namespace for the TenantControlPlane. Mutually exclusive with ExternalClusterReference.
                     type: string
+                    x-kubernetes-validations:
+                    - message: targetNamespace is mutually exclusive with ExternalClusterReference
+                      rule: '!(has(self.targetNamespace) && has(self.externalClusterReference))'
                   externalClusterReference:
                     description: |-
                       ExternalClusterReference allows defining the target Cluster where the Tenant Control Plane components must be deployed.
@@ -8246,6 +8249,9 @@ spec:
                             description: |-
                               Specify a separate namespace for the TenantControlPlane. Mutually exclusive with ExternalClusterReference.
                             type: string
+                            x-kubernetes-validations:
+                            - message: targetNamespace is mutually exclusive with ExternalClusterReference
+                              rule: '!(has(self.targetNamespace) && has(self.externalClusterReference))'
                           externalClusterReference:
                             description: |-
                               ExternalClusterReference allows defining the target Cluster where the Tenant Control Plane components must be deployed.

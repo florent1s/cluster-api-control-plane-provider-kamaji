@@ -42,7 +42,7 @@ func (r *KamajiControlPlaneReconciler) createOrUpdateTenantControlPlane(ctx cont
 			tcp.Name, tcp.Namespace = externalclusterreference.GenerateRemoteTenantControlPlaneNames(kcp)
 		}
 
-		if dedicatedTcpNamespace := kcp.Spec.Deployment.TargetNamespace; (dedicatedTcpNamespace != nil) && !isDelegatedExternally {
+		if dedicatedTcpNamespace := kcp.Spec.Deployment.TargetNamespace; (dedicatedTcpNamespace != "") && !isDelegatedExternally {
 			tcp.Namespace = dedicatedTcpNamespace
 		}
 

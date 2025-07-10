@@ -57,6 +57,26 @@ func (r *KamajiControlPlaneReconciler) createOrUpdateTenantControlPlane(ctx cont
 
 			tcp.Labels = kcp.Labels
 
+			// Check the KCP-UID label to avoid collsions if 2 clusters with the same name
+			// use the same namespace with externalClusterReference
+			// if label is not present, it will be added
+			if isDelegatedExternally && kcp.Spec.Deployment.ExternalClusterReference.DeploymentName != "" {
+
+				var val string
+
+				if val := tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel]; val != "" {
+					if tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel] != string(kcp.UID) {
+						// collision -> error
+						log.Error(err, "Collision on TenantControlPlane '%s': Value of label '%s' does not match.", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel)
+						//return nil, errors.Wrap(ErrTCPCollision, fmt.Sprintf("Collision on TenantControlPlane %s: Value of label '%s' does not match.", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel))
+				  }
+					// label matches our kcp UID -> update TCP (nothing to do here)
+				}
+				else { // undefined or "" -> add the label
+			  	tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel] = string(kcp.UID)
+			  }
+			}
+
 			if kubeconfigSecretKey := kcp.Annotations[kamajiv1alpha1.KubeconfigSecretKeyAnnotation]; kubeconfigSecretKey != "" {
 				tcp.Annotations[kamajiv1alpha1.KubeconfigSecretKeyAnnotation] = kubeconfigSecretKey
 			} else {

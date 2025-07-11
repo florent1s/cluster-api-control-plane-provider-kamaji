@@ -66,15 +66,15 @@ func (r *KamajiControlPlaneReconciler) createOrUpdateTenantControlPlane(ctx cont
 				k8sClient.Get(ctx, types.NamespacedName{Namespace: tcp.Namespace, Name: tcp.Name}, &tcpInCluster)
 
 				var val string
-				
+
 				if val = tcpInCluster.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel]; val != "" {
 					if val != string(kcp.UID) {
-						// collision -> error
-						return errors.Wrap(ErrTCPCollision, fmt.Sprintf("TCP '%s': Value of label '%s' does not match", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel))
+									// collision -> error
+									return errors.Wrap(ErrTCPCollision, fmt.Sprintf("TCP '%s': Value of label '%s' does not match", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel))
 					}
 					// label matches our kcp UID -> update TCP (nothing to do here)
 				} else { // claim this TCP by adding the label
-					tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel] = string(kcp.UID)
+								tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel] = string(kcp.UID)
 				}
 			}
 

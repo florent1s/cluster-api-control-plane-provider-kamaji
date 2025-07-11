@@ -11,18 +11,19 @@ import (
 
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/pkg/errors"
+	"k8s.io/apimachinery/pkg/types"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/utils/ptr"
 	capiv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
 	kcpv1alpha1 "github.com/clastix/cluster-api-control-plane-provider-kamaji/api/v1alpha1"
 	"github.com/clastix/cluster-api-control-plane-provider-kamaji/pkg/externalclusterreference"
 )
 
 var ErrUnsupportedCertificateSAN = errors.New("a certificate SAN must be made of host only with no port")
+var ErrTCPCollision = errors.New("Collision on remote TenantControlPlanes")
 
 //+kubebuilder:rbac:groups=kamaji.clastix.io,resources=tenantcontrolplanes,verbs=get;list;watch;create;update
 
@@ -61,20 +62,20 @@ func (r *KamajiControlPlaneReconciler) createOrUpdateTenantControlPlane(ctx cont
 			// use the same namespace with externalClusterReference
 			// if label is not present, it will be added
 			if isDelegatedExternally && kcp.Spec.Deployment.ExternalClusterReference.DeploymentName != "" {
+				var tcpInCluster kamajiv1alpha1.TenantControlPlane
+				k8sClient.Get(ctx, types.NamespacedName{Namespace: tcp.Namespace, Name: tcp.Name}, &tcpInCluster)
 
 				var val string
-
-				if val := tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel]; val != "" {
-					if tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel] != string(kcp.UID) {
+				
+				if val = tcpInCluster.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel]; val != "" {
+					if val != string(kcp.UID) {
 						// collision -> error
-						log.Error(err, "Collision on TenantControlPlane '%s': Value of label '%s' does not match.", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel)
-						//return nil, errors.Wrap(ErrTCPCollision, fmt.Sprintf("Collision on TenantControlPlane %s: Value of label '%s' does not match.", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel))
-				  }
+						return errors.Wrap(ErrTCPCollision, fmt.Sprintf("TCP '%s': Value of label '%s' does not match", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel))
+					}
 					// label matches our kcp UID -> update TCP (nothing to do here)
+				} else { // claim this TCP by adding the label
+					tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel] = string(kcp.UID)
 				}
-				else { // undefined or "" -> add the label
-			  	tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel] = string(kcp.UID)
-			  }
 			}
 
 			if kubeconfigSecretKey := kcp.Annotations[kamajiv1alpha1.KubeconfigSecretKeyAnnotation]; kubeconfigSecretKey != "" {

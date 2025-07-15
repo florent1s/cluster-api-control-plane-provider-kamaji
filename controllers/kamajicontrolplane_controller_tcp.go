@@ -63,17 +63,14 @@ func (r *KamajiControlPlaneReconciler) createOrUpdateTenantControlPlane(ctx cont
 			// if label is not present, it will be added
 			if isDelegatedExternally && kcp.Spec.Deployment.ExternalClusterReference.DeploymentName != "" {
 				var tcpInCluster kamajiv1alpha1.TenantControlPlane
-				k8sClient.Get(ctx, types.NamespacedName{Namespace: tcp.Namespace, Name: tcp.Name}, &tcpInCluster)
+				remoteClient.Get(ctx, types.NamespacedName{Namespace: tcp.Namespace, Name: tcp.Name}, &tcpInCluster)
 
-				var val string
-
-				if val = tcpInCluster.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel]; val != "" {
+				if val := tcpInCluster.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel]; val != "" {
 					if val != string(kcp.UID) {
-						// collision -> error
-						return errors.Wrap(ErrTCPCollision, fmt.Sprintf("TCP '%s': Value of label '%s' does not match", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel))
+						return errors.Wrap(ErrTCPCollision, fmt.Sprintf("Collision on TenantControlPlane %s: Value of label '%s' does not match.", tcp.Name, kcpv1alpha1.KamajiControlPlaneUIDLabel))
 					}
 					// label matches our kcp UID -> update TCP (nothing to do here)
-				} else { // claim this TCP by adding the label
+				} else { // label not present -> claim this TCP by adding it
 					tcp.Labels[kcpv1alpha1.KamajiControlPlaneUIDLabel] = string(kcp.UID)
 				}
 			}

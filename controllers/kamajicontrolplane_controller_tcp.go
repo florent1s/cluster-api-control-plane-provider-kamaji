@@ -9,17 +9,17 @@ import (
 	"net"
 	"strings"
 
+	kcpv1alpha1 "github.com/clastix/cluster-api-control-plane-provider-kamaji/api/v1alpha1"
+	"github.com/clastix/cluster-api-control-plane-provider-kamaji/pkg/externalclusterreference"
 	kamajiv1alpha1 "github.com/clastix/kamaji/api/v1alpha1"
 	"github.com/pkg/errors"
-	"k8s.io/apimachinery/pkg/types"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/utils/ptr"
 	capiv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	kcpv1alpha1 "github.com/clastix/cluster-api-control-plane-provider-kamaji/api/v1alpha1"
-	"github.com/clastix/cluster-api-control-plane-provider-kamaji/pkg/externalclusterreference"
 )
 
 var ErrUnsupportedCertificateSAN = errors.New("a certificate SAN must be made of host only with no port")
